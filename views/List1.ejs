@@ -1,0 +1,239 @@
+<html>
+   <title>List2</title>
+   <head> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<link href="CSS/style.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+
+    <div class="topnav">
+        <div class="search-container">
+            <input id="search" type="text" placeholder="Search.." name="search">
+        </div>
+      </div>
+  
+
+<div class="container ">
+</div>
+<div class="container " style="margin-left: 5%;margin-right:5%;" >
+    <!-- Table structure here -->
+   
+    <table class="table table-dark" id="our-table">
+        <thead>
+            <tr>
+                <th>Profile</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table>
+</div>
+
+<div class="container paging">
+    <div id="pagination-wrapper">
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+function show(id){
+// Get the modal
+
+var modal = document.getElementById("myModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById(id);
+
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks the button, open the modal 
+btn.onclick = function() {
+  modal.style.display = "block";
+
+
+  var tableData=JSON.parse(UserList); 
+  var x = document.createElement("IMG");
+  x.setAttribute("src", tableData[id-1].avatar);
+  x.setAttribute("width", "100");
+  x.setAttribute("height", "100");
+  x.setAttribute("alt", "Rock");
+  var element1 = document.getElementById("div1");
+  element1.appendChild(x);      
+    
+    
+    var dict = {"Email":tableData[id-1].email, "First Name":tableData[id-1].first_name, "Last Name":tableData[id-1].last_name};
+    for(var key in dict){
+    var para = document.createElement("h2"); 
+    var node = document.createTextNode(key + " : " + dict[key]);
+    para.appendChild(node);
+    var element = document.getElementById("div1");
+    element.appendChild(para);
+    }  
+    
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = "none";
+ 
+  var node= document.getElementById("div1");
+  node.querySelectorAll('h2').forEach(n => n.remove());
+  node.querySelectorAll('IMG').forEach(n => n.remove());
+
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+    var node= document.getElementById("div1");
+node.querySelectorAll('h2').forEach(n => n.remove());
+node.querySelectorAll('IMG').forEach(n => n.remove());  
+}
+}
+}
+
+var UserList = '<%-JSON.stringify(UserList) %>'; 
+var table=JSON.parse(UserList);
+$(document).ready(function(){
+    
+
+/*
+	1 - Loop Through Array & Access each value
+  2 - Create Table Rows & append to table
+*/
+
+var state = {
+    'querySet': table,
+    'page': 1,
+    'rows': 4,
+    'window': 5,
+}
+
+
+
+buildTable()
+
+function pagination(querySet, page, rows) {
+
+    var trimStart = (page - 1) * rows
+    var trimEnd = trimStart + rows
+
+    var trimmedData = querySet.slice(trimStart, trimEnd)
+
+    var pages = Math.round(querySet.length / rows);
+
+    return {
+        'querySet': trimmedData,
+        'pages': pages,
+    }
+}
+
+function pageButtons(pages) {
+    var wrapper = document.getElementById('pagination-wrapper')
+
+    wrapper.innerHTML = ``
+	console.log('Pages:', pages)
+
+    var maxLeft = (state.page - Math.floor(state.window / 2))
+    var maxRight = (state.page + Math.floor(state.window / 2))
+
+    if (maxLeft < 1) {
+        maxLeft = 1
+        maxRight = state.window
+    }
+
+    if (maxRight > pages) {
+        maxLeft = pages - (state.window - 1)
+        
+        if (maxLeft < 1){
+        	maxLeft = 1
+        }
+        maxRight = pages
+    }
+    
+    
+
+    for (var page = maxLeft; page <= maxRight; page++) {
+    	wrapper.innerHTML += `<button value=${page} class="page btn btn-sm btn-info">${page}</button>`
+    }
+
+    if (state.page != 1) {
+        wrapper.innerHTML = `<button value=${1} class="page btn btn-sm btn-info">&#171; First</button>` + wrapper.innerHTML
+    }
+
+    if (state.page != pages) {
+        wrapper.innerHTML += `<button value=${pages} class="page btn btn-sm btn-info">Last &#187;</button>`
+    }
+
+    $('.page').on('click', function() {
+        $('#table-body').empty()
+
+        state.page = Number($(this).val())
+
+        buildTable()
+    })
+
+}
+
+
+function buildTable() {
+    var table = $('#table-body')
+
+    var data = pagination(state.querySet, state.page, state.rows)
+    var myList = data.querySet
+    console.log(myList);
+    for (var i = 1 in myList) {
+        //Keep in mind we are using "Template Litterals to create rows"
+        var row = `<tr>
+                 <td><a id=${myList[i].id} onClick=show(this.id)><img class="avatar" src=${myList[i].avatar} alt="pic"></a></td>
+                  <td class="f_name">${myList[i].first_name}</td>
+                  <td class="l_name">${myList[i].last_name}</td>
+                  `
+                  //<td class="id">${myList[i].id}</td>
+                  //<td class="email">${myList[i].email}</td>
+        table.append(row)
+    }
+
+    pageButtons(data.pages)
+}
+
+
+
+
+
+});
+
+$(document).ready(function(){
+  $("#search").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $("#table-body tr").filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+  });
+});
+
+
+</script>
+
+
+<div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div id="div1" class="modal-content">
+      <span class="close">&times;</span>
+      
+    </div>
+  
+  </div>
+</body>
+</html>
