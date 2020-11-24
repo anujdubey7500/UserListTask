@@ -13,8 +13,8 @@ app.set('view engine','ejs');
 var final=[];
 app.get('/', function (req, res) {
 
-    var url = "https://reqres.in/api/users?page=1";
-    var url_test = "https://reqres.in/api/users?page=2";
+    var url = "{API not for share}api/users?page=1";
+    var url_test = "{API NOT FOR SHARE}/api/users?page=2";
   
     Promise.all([rp({uri: url, json:true}), rp({uri: url_test, json:true})]).then(([apiData, test]) => {
         let List1=apiData.data;
